@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timer Bakragore — Rotten Charge (1:30)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #120f1c;
+    --bg-2: #1a1628;
+    --line: #332a4a;
+    --ink: #f1edf7;
+    --ink-dim: #a998c7;
+    --rest: #7c4fe0;
+    --rest-glow: #a97dff;
+    --count: #b83fc9;
+    --count-glow: #e06bf0;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 50% -10%, #241a3d 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    display:flex;
+    align-items:center;
+    align-items:safe center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px;
+  }
+  .rig{
+    width:100%;
+    max-width:540px;
+    background: var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:36px 32px 28px;
+    position:relative;
+    overflow:hidden;
+    box-shadow: 0 40px 80px -40px rgba(0,0,0,.7);
+  }
+  .rig::before{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 30%);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    text-align:center;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:21px;
+    font-weight:400;
+    text-align:center;
+    margin:0 0 28px;
+    color:var(--ink);
+    letter-spacing:.01em;
+  }
+
+  .stage{
+    position:relative;
+    width:280px;
+    height:280px;
+    margin:0 auto 26px;
+  }
+  svg{ transform: rotate(-90deg); }
+  .track{ fill:none; stroke:var(--line); stroke-width:10; }
+  .progress{
+    fill:none;
+    stroke-width:10;
+    stroke-linecap:round;
+    transition: stroke 0.4s ease;
+  }
+  .progress.rest{ stroke: var(--rest); filter: drop-shadow(0 0 10px rgba(169,125,255,.4)); }
+
+  .stage-center{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:6px;
+  }
+  .phase-label{
+    font-family: var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .phase-label.rest{ color: var(--rest-glow); }
+  .time{
+    font-family: var(--mono);
+    font-size:54px;
+    font-weight:700;
+    line-height:1;
+    letter-spacing:-.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .cycle-note{
+    font-family: var(--mono);
+    font-size:10px;
+    color:var(--ink-dim);
+  }
+
+  .bar-wrap{
+    margin: 4px 0 24px;
+  }
+  .bar-label{
+    display:flex; justify-content:space-between;
+    font-family: var(--mono);
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .bar{
+    height:6px;
+    background:var(--line);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    width:0%;
+    background: linear-gradient(90deg, var(--rest), var(--count));
+    transition: width 0.3s linear;
+  }
+
+  .controls{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+  }
+  button{
+    font-family: var(--mono);
+    font-size:13px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:12px 20px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  button:hover{ border-color:var(--ink-dim); }
+  button.primary{
+    background: var(--rest);
+    border-color: var(--rest);
+    color:#0f1410;
+    font-weight:700;
+  }
+  button.primary:hover{ background: var(--rest-glow); border-color:var(--rest-glow); }
+  button.primary.pause{
+    background: var(--count);
+    border-color: var(--count);
+  }
+  button.primary.pause:hover{ background: var(--count-glow); border-color:var(--count-glow); }
+  button:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .test-controls{
+    margin-top:10px;
+  }
+  .test-hint{
+    text-align:center;
+    margin-top:6px;
+    font-family: var(--mono);
+    font-size:11px;
+    color: var(--ink-dim);
+    opacity:.75;
+  }
+
+  /* ---------- Abas (Timer / LootSplit) ---------- */
+  .app-wrap{
+    width:100%;
+    max-width:540px;
+  }
+  .app-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .tab-btn{
+    flex:1;
+    font-family: var(--mono);
+    font-size:12px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:11px 10px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--ink-dim);
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .tab-btn:hover:not(.active){
+    color: var(--ink);
+    border-color: var(--ink-dim);
+  }
+  .tab-btn.active{
+    background: var(--rest);
+    border-color: var(--rest);
+    color:#120f1c;
+    font-weight:700;
+  }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  /* ---------- LootSplit ---------- */
+  .loot-instructions{
+    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    font-size:14px;
+    line-height:1.55;
+    color: var(--ink-dim);
+    margin:0 0 18px;
+  }
+  .loot-instructions em{ color: var(--rest-glow); font-style:normal; }
+  .loot-textarea{
+    width:100%;
+    min-height:170px;
+    background: var(--bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size:12px;
+    line-height:1.5;
+    padding:12px;
+    resize:vertical;
+    margin-bottom:16px;
+  }
+  .loot-textarea:focus{
+    outline:none;
+    border-color: var(--rest-glow);
+  }
+  .loot-error{
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--count-glow);
+    text-align:center;
+    min-height:14px;
+    margin-top:10px;
+  }
+  .loot-results{ margin-top:26px; }
+  .loot-summary{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:20px;
+    padding:14px 16px;
+    background: var(--bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .loot-summary-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink-dim);
+  }
+  .loot-summary-row strong{
+    color: var(--ink);
+    font-size:14px;
+  }
+  .loot-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family: var(--mono);
+    font-size:12px;
+    margin-bottom:22px;
+  }
+  .loot-table-hint{
+    font-family: var(--mono);
+    font-size:11px;
+    color: var(--ink-dim);
+    opacity:.8;
+    margin-bottom:10px;
+  }
+  .loot-table th{
+    text-align:right;
+    color: var(--ink-dim);
+    font-weight:400;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    padding:8px 6px;
+    border-bottom:1px solid var(--line);
+  }
+  .loot-table th:first-child, .loot-table td:first-child{ text-align:left; }
+  .loot-table td{
+    text-align:right;
+    padding:10px 6px;
+    border-bottom:1px solid var(--line);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height:1.4;
+  }
+  .loot-table td.positive{ color: var(--rest-glow); }
+  .loot-table td.negative{ color: var(--count-glow); }
+  .loot-name-cell{
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
+  .loot-include-checkbox{
+    flex-shrink:0;
+    width:13px;
+    height:13px;
+    accent-color: var(--rest-glow);
+    cursor:pointer;
+  }
+  tr.excluded-row td{
+    opacity:.4;
+  }
+  tr.excluded-row td.loot-name-cell,
+  tr.excluded-row .loot-name-cell{
+    opacity:1;
+  }
+  tr.excluded-row .loot-name-cell span{
+    opacity:.4;
+    text-decoration: line-through;
+  }
+  .loot-transfers-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .loot-transfers-title{
+    font-family: var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--ink-dim);
+  }
+  .copy-all-btn{
+    font-family: var(--mono);
+    font-size:11px;
+    letter-spacing:.04em;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:transparent;
+    color: var(--ink-dim);
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .copy-all-btn:hover{ color: var(--ink); border-color: var(--rest-glow); }
+  .copy-all-btn.copied{ color: var(--rest-glow); border-color: var(--rest-glow); }
+  #lootTransfersList{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  #lootTransfersList li{
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink);
+    background: var(--bg);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 10px 12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  #lootTransfersList li strong{ color: var(--rest-glow); }
+  .transfer-text{
+    min-width:0;
+    flex:1;
+    line-height:1.5;
+    word-break:break-word;
+  }
+  #lootTransfersList li.empty-msg{
+    color: var(--ink-dim);
+    text-align:center;
+    background:transparent;
+    border-style:dashed;
+    justify-content:center;
+  }
+  .transfer-copy-btn{
+    flex-shrink:0;
+    font-size:13px;
+    width:28px;
+    height:28px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:transparent;
+    color: var(--ink-dim);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+  }
+  .transfer-copy-btn:hover{ color: var(--ink); border-color: var(--rest-glow); }
+  .transfer-copy-btn.copied{ color: var(--rest-glow); border-color: var(--rest-glow); }
+
+  /* ---------- Histórico salvo (localStorage) ---------- */
+  .loot-history{
+    margin-top:28px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .loot-history-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .loot-history-title{
+    font-family: var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color: var(--ink-dim);
+  }
+  .ghost.small{
+    font-size:10px;
+    padding:6px 10px;
+  }
+  .loot-history-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .loot-history-empty{
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink-dim);
+    text-align:center;
+    padding:14px 10px;
+    border:1px dashed var(--line);
+    border-radius:8px;
+  }
+  .history-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    background: var(--bg);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+  }
+  .history-item-date{
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink);
+  }
+  .history-item-meta{
+    font-family: var(--mono);
+    font-size:11px;
+    color: var(--ink-dim);
+    margin-top:2px;
+  }
+  .history-item-actions{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .history-load-btn{
+    font-family: var(--mono);
+    font-size:11px;
+    padding:6px 10px;
+    border-radius:6px;
+    border:1px solid var(--rest);
+    background:transparent;
+    color: var(--rest-glow);
+    cursor:pointer;
+  }
+  .history-load-btn:hover{ background: var(--rest); color:#120f1c; }
+  .history-delete-btn{
+    font-size:13px;
+    width:26px;
+    height:26px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:transparent;
+    color: var(--ink-dim);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+  }
+  .history-delete-btn:hover{ color: var(--count-glow); border-color: var(--count-glow); }
+
+  button.ghost{
+    background: transparent;
+    border-style: dashed;
+    color: var(--ink-dim);
+    font-size:12px;
+    padding:9px 18px;
+  }
+  button.ghost:hover{
+    color: var(--ink);
+    border-color: var(--ink-dim);
+  }
+
+  .status{
+    text-align:center;
+    margin-top:16px;
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink-dim);
+    min-height:16px;
+  }
+  .status.done{ color: var(--rest-glow); }
+
+  .pip-hint{
+    text-align:center;
+    margin-top:8px;
+    font-family: var(--mono);
+    font-size:10px;
+    color: var(--ink-dim);
+    min-height:14px;
+  }
+
+  /* Layout compacto quando a página vira o corpo da janela de PIP */
+  body.pip-mode{
+    margin:0 !important;
+    background: var(--bg-2) !important;
+    width:100% !important;
+    height:100vh !important;
+    min-height:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+  body.pip-mode .phase-label{
+    display:none !important;
+  }
+
+  /* Painel montado dentro da janela de PIP */
+  .pip-panel{
+    display:none;
+  }
+  body.pip-mode .pip-panel{
+    display:flex !important;
+    flex-direction:column;
+    width:100%;
+    height:100%;
+    padding:8px;
+    gap:6px;
+    background: var(--bg-2);
+  }
+  .pip-topbar{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .pip-bar{
+    height:5px;
+    background:var(--line);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .pip-bar-fill{
+    height:100%;
+    width:0%;
+    background: linear-gradient(90deg, var(--rest), var(--count));
+    transition: width 0.3s linear;
+  }
+  .pip-session-label{
+    font-family: var(--mono);
+    font-size:9px;
+    color: var(--ink-dim);
+    letter-spacing:.04em;
+    font-variant-numeric: tabular-nums;
+    text-align:right;
+  }
+  .pip-body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    flex:1;
+    min-height:0;
+    width:100%;
+  }
+  .pip-toggle-btn{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background: var(--rest);
+    color:#120f1c;
+    font-size:13px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0 0 0 2px;
+    margin:0;
+    box-sizing:border-box;
+  }
+  .pip-toggle-btn:hover{ background: var(--rest-glow); }
+  .pip-toggle-btn.pause{
+    background: var(--count);
+    padding:0;
+  }
+  .pip-toggle-btn.pause:hover{ background: var(--count-glow); }
+
+  .pip-btns{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .pip-reset-btn{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:1px dashed var(--line);
+    background:transparent;
+    color: var(--ink-dim);
+    font-size:13px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    margin:0;
+    box-sizing:border-box;
+  }
+  .pip-reset-btn:hover{
+    color: var(--ink);
+    border-color: var(--ink-dim);
+  }
+  .pip-stage-slot{
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  body.pip-mode .pip-stage-slot .stage{
+    width:100px !important;
+    height:100px !important;
+    margin:0 !important;
+  }
+  body.pip-mode .pip-stage-slot .time{
+    font-size:22px !important;
+  }
+  body.pip-mode .pip-stage-slot .cycle-note{
+    font-size:7px !important;
+  }
+
+  .sound-panel{
+    margin-top:26px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .sound-panel-title{
+    font-family: var(--mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:14px;
+    text-align:center;
+  }
+  .sound-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .sound-row:last-child{ margin-bottom:0; }
+  .sound-dot{
+    width:8px; height:8px; border-radius:50%;
+    flex-shrink:0;
+  }
+  .dot-warn{ background: #e0c34a; }
+  .dot-count5{ background: var(--count-glow); }
+  .dot-start{ background: #6fb3e0; }
+  .sound-name{
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink);
+    width:118px;
+    flex-shrink:0;
+  }
+  .sound-slider{
+    flex:1;
+    accent-color: var(--rest-glow);
+    height:4px;
+    cursor:pointer;
+  }
+  .mute-btn{
+    font-family: var(--mono);
+    font-size:14px;
+    width:30px; height:30px;
+    padding:0;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:transparent;
+    color: var(--ink-dim);
+    cursor:pointer;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mute-btn.muted{
+    color: var(--count-glow);
+    border-color: var(--count-glow);
+  }
+  .vol-pct{
+    font-family: var(--mono);
+    font-size:12px;
+    color: var(--ink-dim);
+    width:34px;
+    text-align:right;
+    flex-shrink:0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width:420px){
+    .stage{ width:230px; height:230px; }
+    .time{ font-size:42px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app-wrap">
+    <div class="app-tabs">
+      <button class="tab-btn active" data-tab="timer" id="tabBtnTimer">⏱ Timer Bakragore</button>
+      <button class="tab-btn" data-tab="loot" id="tabBtnLoot">💰 LootSplit</button>
+    </div>
+
+    <div id="panelTimer" class="tab-panel active">
+  <div class="rig">
+    <div class="eyebrow">Bakragore — Rotten Charge Timer</div>
+    <h1>Rotten Charge a cada 1&nbsp;min&nbsp;30s</h1>
+
+    <div class="stage" id="stageBox">
+      <svg width="100%" height="100%" viewBox="0 0 280 280">
+        <circle class="track" cx="140" cy="140" r="122"></circle>
+        <circle id="ring" class="progress rest" cx="140" cy="140" r="122"
+                stroke-dasharray="766.5" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="stage-center">
+        <div id="phaseLabel" class="phase-label rest">Próxima Rotten Charge</div>
+        <div id="time" class="time">01:30</div>
+        <div id="cycleNote" class="cycle-note">ciclo 1</div>
+      </div>
+    </div>
+
+    <div class="bar-wrap">
+      <div class="bar-label">
+        <span>Sessão</span>
+        <span id="sessionLabel">00:00 / 25:00</span>
+      </div>
+      <div class="bar"><div id="sessionFill" class="bar-fill"></div></div>
+    </div>
+
+    <div class="controls">
+      <button id="toggleBtn" class="primary">Iniciar</button>
+      <button id="resetBtn">Reiniciar</button>
+      <button id="pipBtn">🗔 PIP</button>
+    </div>
+    <div id="pipHint" class="pip-hint"></div>
+
+    <!-- Painel usado somente dentro da janela de PIP; fica oculto na página normal -->
+    <div id="pipPanel" class="pip-panel">
+      <div class="pip-topbar">
+        <div class="pip-bar"><div id="pipSessionFill" class="pip-bar-fill"></div></div>
+        <span id="pipSessionLabel" class="pip-session-label">00:00 / 25:00</span>
+      </div>
+      <div class="pip-body">
+        <div class="pip-btns">
+          <button id="pipToggleBtn" class="pip-toggle-btn" title="Iniciar / Pausar">▶</button>
+          <button id="pipResetBtn" class="pip-reset-btn" title="Reiniciar">↺</button>
+        </div>
+        <div id="pipStageSlot" class="pip-stage-slot"></div>
+      </div>
+    </div>
+
+    <div class="controls test-controls">
+      <button id="sub30Btn" class="ghost">−30s</button>
+      <button id="sub15Btn" class="ghost">−15s</button>
+    </div>
+    <div class="test-hint">botões de teste — agilizam o timer pra testar os sons rapidamente</div>
+
+    <div id="status" class="status"></div>
+
+    <div class="sound-panel">
+      <div class="sound-panel-title">Volumes</div>
+
+      <div class="sound-row">
+        <span class="sound-dot dot-warn"></span>
+        <span class="sound-name">Bip 10s restantes</span>
+        <input type="range" class="sound-slider" id="volWarn" min="0" max="100" value="70">
+        <span class="vol-pct" id="pctWarn">70%</span>
+        <button class="mute-btn" id="muteWarn" title="Silenciar bip de 10s">🔊</button>
+      </div>
+
+      <div class="sound-row">
+        <span class="sound-dot dot-count5"></span>
+        <span class="sound-name">Bip últimos 5s</span>
+        <input type="range" class="sound-slider" id="volCount5" min="0" max="100" value="70">
+        <span class="vol-pct" id="pctCount5">70%</span>
+        <button class="mute-btn" id="muteCount5" title="Silenciar bip dos 5s">🔊</button>
+      </div>
+
+      <div class="sound-row">
+        <span class="sound-dot dot-start"></span>
+        <span class="sound-name">Bip Reset Timer</span>
+        <input type="range" class="sound-slider" id="volStart" min="0" max="100" value="70">
+        <span class="vol-pct" id="pctStart">70%</span>
+        <button class="mute-btn" id="muteStart" title="Silenciar bip da Rotten Charge">🔊</button>
+      </div>
+    </div>
+  </div>
+    </div><!-- /panelTimer -->
+
+    <div id="panelLoot" class="tab-panel">
+      <div class="rig">
+        <div class="eyebrow">Tibia — Party Hunt Analyser</div>
+        <h1>LootSplit</h1>
+        <p class="loot-instructions">
+          Cole abaixo o texto copiado do Party Hunt Analyser do Tibia (botão direito no analyser → <em>Copy to clipboard</em>) e calcule a divisão justa do loot entre os membros da party.
+        </p>
+
+        <textarea id="lootInput" class="loot-textarea" placeholder="Cole aqui o texto do Party Hunt Analyser..."></textarea>
+
+        <div class="controls">
+          <button id="lootCalcBtn" class="primary">Calcular Split</button>
+          <button id="lootClearBtn">Limpar</button>
+        </div>
+
+        <div id="lootError" class="loot-error"></div>
+
+        <div id="lootResults" class="loot-results" style="display:none;">
+          <div class="loot-summary">
+            <div class="loot-summary-row">
+              <span>Balance total do grupo</span>
+              <strong id="lootTotalBalance">0</strong>
+            </div>
+            <div class="loot-summary-row">
+              <span>Divisão igualitária (por pessoa)</span>
+              <strong id="lootEqualShare">0</strong>
+            </div>
+          </div>
+
+          <div class="loot-table-hint">Desmarque um jogador pra tirá-lo da divisão (ex: alguém que só ajudou na hunt, sem participar do loot).</div>
+
+          <table class="loot-table">
+            <thead>
+              <tr>
+                <th>Jogador</th>
+                <th>Loot</th>
+                <th>Supplies</th>
+                <th>Balance</th>
+                <th>Ajuste</th>
+              </tr>
+            </thead>
+            <tbody id="lootTableBody"></tbody>
+          </table>
+
+          <div class="loot-transfers">
+            <div class="loot-transfers-header">
+              <div class="loot-transfers-title">Transferências sugeridas</div>
+              <button id="lootCopyAllBtn" class="copy-all-btn" title="Copiar resumo completo">📋 Copiar tudo</button>
+            </div>
+            <ul id="lootTransfersList"></ul>
+          </div>
+        </div>
+
+        <div class="loot-history">
+          <div class="loot-history-header">
+            <span class="loot-history-title">Histórico salvo</span>
+            <button id="lootHistoryClearBtn" class="ghost small">Limpar histórico</button>
+          </div>
+          <div id="lootHistoryList" class="loot-history-list"></div>
+        </div>
+      </div>
+    </div><!-- /panelLoot -->
+  </div><!-- /app-wrap -->
+
+<script>
+(function(){
+  const REST_TIME = 90;      // 1min30s (intervalo da Rotten Charge)
+  const SESSION_TIME = 25 * 60; // 25 min
+
+  const ring = document.getElementById('ring');
+  const timeEl = document.getElementById('time');
+  const phaseLabelEl = document.getElementById('phaseLabel');
+  const cycleNoteEl = document.getElementById('cycleNote');
+  const sessionLabelEl = document.getElementById('sessionLabel');
+  const sessionFillEl = document.getElementById('sessionFill');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const pipBtn = document.getElementById('pipBtn');
+  const pipHintEl = document.getElementById('pipHint');
+  const add30Btn = document.getElementById('sub30Btn');
+  const add15Btn = document.getElementById('sub15Btn');
+  const statusEl = document.getElementById('status');
+
+  const CIRC = 2 * Math.PI * 122;
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+
+  let phaseRemaining = REST_TIME;
+  let sessionElapsed = 0;
+  let cycle = 1;
+  let running = false;
+  let intervalId = null;
+
+  // ---------- Volumes / mute por som ----------
+  const sound = {
+    warn:   { vol: 0.7, muted: false },
+    count5: { vol: 0.7, muted: false },
+    start:  { vol: 0.7, muted: false }
+  };
+
+  function wireSoundControl(key, sliderId, muteBtnId, pctId){
+    const slider = document.getElementById(sliderId);
+    const muteBtn = document.getElementById(muteBtnId);
+    const pctEl = document.getElementById(pctId);
+    slider.addEventListener('input', () => {
+      sound[key].vol = Number(slider.value) / 100;
+      pctEl.textContent = slider.value + '%';
+    });
+    muteBtn.addEventListener('click', () => {
+      sound[key].muted = !sound[key].muted;
+      muteBtn.classList.toggle('muted', sound[key].muted);
+      muteBtn.textContent = sound[key].muted ? '🔇' : '🔊';
+    });
+  }
+  wireSoundControl('warn',   'volWarn',   'muteWarn',   'pctWarn');
+  wireSoundControl('count5', 'volCount5', 'muteCount5', 'pctCount5');
+  wireSoundControl('start',  'volStart',  'muteStart',  'pctStart');
+
+  function effectiveVol(key){
+    return sound[key].muted ? 0 : sound[key].vol;
+  }
+
+  // ---------- Beeps via Web Audio API ----------
+  let audioCtx = null;
+  function getAudioCtx(){
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) audioCtx = new AC();
+    }
+    if(audioCtx && audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, volKey, opts){
+    const gainMax = effectiveVol(volKey);
+    if(gainMax <= 0) return;
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const type = (opts && opts.type) || 'sine';
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(gainMax * 0.5, now + 0.01);
+    gain.gain.linearRampToValueAtTime(0, now + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+  }
+
+  // Bip único ao restar 10s de descanso
+  function beepWarnTen(){
+    playTone(880, 0.18, 'warn', { type:'triangle' });
+  }
+  // Bip curto, um por segundo, nos últimos 5s de descanso
+  function beepCountFive(){
+    playTone(660, 0.12, 'count5', { type:'square' });
+  }
+  // Bip diferente ao chegar a 0 — Rotten Charge dispara e o ciclo reinicia
+  function beepRottenCharge(){
+    playTone(1200, 0.3, 'start', { type:'sawtooth' });
+    setTimeout(() => playTone(1500, 0.25, 'start', { type:'sawtooth' }), 120);
+  }
+
+  function fmt(s){
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  }
+
+  function render(){
+    timeEl.textContent = fmt(phaseRemaining);
+    cycleNoteEl.textContent = 'ciclo ' + cycle;
+    sessionLabelEl.textContent = fmt(sessionElapsed) + ' / ' + fmt(SESSION_TIME);
+    sessionFillEl.style.width = Math.min(100, (sessionElapsed / SESSION_TIME) * 100) + '%';
+    pipSessionLabelEl.textContent = fmt(sessionElapsed) + ' / ' + fmt(SESSION_TIME);
+    pipSessionFillEl.style.width = Math.min(100, (sessionElapsed / SESSION_TIME) * 100) + '%';
+
+    const fraction = phaseRemaining / REST_TIME;
+    ring.setAttribute('stroke-dashoffset', (CIRC * (1 - fraction)).toFixed(1));
+  }
+
+  function tick(){
+    if(sessionElapsed >= SESSION_TIME){
+      finishSession();
+      return;
+    }
+
+    phaseRemaining -= 1;
+    sessionElapsed += 1;
+
+    // 10s restantes: bip único de aviso
+    if(phaseRemaining === 10){
+      beepWarnTen();
+    }
+    // últimos 5s: um bip por segundo (5,4,3,2,1)
+    if(phaseRemaining >= 1 && phaseRemaining <= 5){
+      beepCountFive();
+    }
+
+    if(phaseRemaining <= 0){
+      beepRottenCharge(); // Rotten Charge disparou — bip diferente
+      phaseRemaining = REST_TIME;
+      cycle += 1;
+    }
+
+    render();
+
+    if(sessionElapsed >= SESSION_TIME){
+      finishSession();
+    }
+  }
+
+  function finishSession(){
+    stop();
+    statusEl.textContent = 'Sessão de 25 minutos concluída. 🎉';
+    statusEl.classList.add('done');
+    toggleBtn.disabled = true;
+    pipToggleBtn.disabled = true;
+  }
+
+  function start(){
+    if(running) return;
+    getAudioCtx(); // desbloqueia o áudio a partir do gesto do usuário
+    running = true;
+    toggleBtn.textContent = 'Pausar';
+    toggleBtn.classList.add('pause');
+    pipToggleBtn.textContent = '⏸';
+    pipToggleBtn.classList.add('pause');
+    statusEl.textContent = '';
+    statusEl.classList.remove('done');
+    intervalId = setInterval(tick, 1000);
+  }
+
+  function stop(){
+    running = false;
+    toggleBtn.textContent = 'Continuar';
+    toggleBtn.classList.remove('pause');
+    pipToggleBtn.textContent = '▶';
+    pipToggleBtn.classList.remove('pause');
+    if(intervalId){ clearInterval(intervalId); intervalId = null; }
+  }
+
+  function reset(){
+    stop();
+    phaseRemaining = REST_TIME;
+    sessionElapsed = 0;
+    cycle = 1;
+    toggleBtn.textContent = 'Iniciar';
+    toggleBtn.disabled = false;
+    pipToggleBtn.textContent = '▶';
+    pipToggleBtn.disabled = false;
+    statusEl.textContent = '';
+    statusEl.classList.remove('done');
+    render();
+  }
+
+  function subtractTime(seconds){
+    const before = phaseRemaining;
+    // mantém pelo menos 1s para o próximo tick cuidar da transição de fase normalmente
+    phaseRemaining = Math.max(1, phaseRemaining - seconds);
+    const actualCut = before - phaseRemaining;
+
+    // avança a sessão total (25min) na mesma proporção do tempo pulado
+    sessionElapsed = Math.min(SESSION_TIME, sessionElapsed + actualCut);
+
+    if(sessionElapsed >= SESSION_TIME){
+      finishSession();
+      return;
+    }
+
+    render();
+  }
+
+  toggleBtn.addEventListener('click', function(){
+    if(running) stop(); else start();
+  });
+  resetBtn.addEventListener('click', reset);
+  add30Btn.addEventListener('click', () => subtractTime(30));
+  add15Btn.addEventListener('click', () => subtractTime(15));
+
+  // ---------- Picture-in-Picture (janela flutuante sempre por cima) ----------
+  const stageEl = document.getElementById('stageBox');
+  const stageParent = stageEl.parentNode;
+  const stageNextSibling = stageEl.nextSibling;
+
+  const pipPanel = document.getElementById('pipPanel');
+  const pipPanelParent = pipPanel.parentNode;
+  const pipPanelNextSibling = pipPanel.nextSibling;
+
+  const pipStageSlot = document.getElementById('pipStageSlot');
+  const pipToggleBtn = document.getElementById('pipToggleBtn');
+  const pipResetBtn = document.getElementById('pipResetBtn');
+  const pipSessionLabelEl = document.getElementById('pipSessionLabel');
+  const pipSessionFillEl = document.getElementById('pipSessionFill');
+
+  let pipWindow = null;
+
+  function copyStylesInto(targetDoc){
+    [...document.styleSheets].forEach(sheet => {
+      try{
+        const rulesText = [...sheet.cssRules].map(r => r.cssText).join('\n');
+        const styleTag = targetDoc.createElement('style');
+        styleTag.textContent = rulesText;
+        targetDoc.head.appendChild(styleTag);
+      }catch(e){ /* stylesheet cross-origin, ignora */ }
+    });
+  }
+
+  function returnPipContentToMainPage(){
+    // devolve o círculo pro lugar original dele na página
+    if(stageNextSibling){
+      stageParent.insertBefore(stageEl, stageNextSibling);
+    } else {
+      stageParent.appendChild(stageEl);
+    }
+    // devolve o painel de PIP pro lugar original dele (oculto)
+    if(pipPanelNextSibling){
+      pipPanelParent.insertBefore(pipPanel, pipPanelNextSibling);
+    } else {
+      pipPanelParent.appendChild(pipPanel);
+    }
+  }
+
+  async function openPip(){
+    if(!('documentPictureInPicture' in window)){
+      pipHintEl.textContent = 'PIP não suportado neste navegador/ambiente. Use Chrome ou Edge, fora de um iframe.';
+      return;
+    }
+    try{
+      pipWindow = await documentPictureInPicture.requestWindow({ width: 210, height: 170 });
+    }catch(e){
+      pipHintEl.textContent = 'Não foi possível abrir o PIP: ' + e.message;
+      return;
+    }
+
+    copyStylesInto(pipWindow.document);
+    pipStageSlot.appendChild(stageEl);         // move o círculo pro slot do painel
+    pipWindow.document.body.classList.add('pip-mode');
+    pipWindow.document.body.appendChild(pipPanel); // move o painel inteiro pra janela de PIP
+
+    pipHintEl.textContent = '';
+    pipBtn.textContent = 'Fechar PIP';
+
+    pipWindow.addEventListener('pagehide', () => {
+      returnPipContentToMainPage();
+      pipWindow = null;
+      pipBtn.textContent = '🗔 PIP';
+    }, { once: true });
+  }
+
+  function closePip(){
+    if(pipWindow) pipWindow.close();
+  }
+
+  pipBtn.addEventListener('click', () => {
+    if(pipWindow) closePip(); else openPip();
+  });
+
+  // botão Iniciar/Pausar dentro do PIP faz a mesma coisa que o botão principal
+  pipToggleBtn.addEventListener('click', function(){
+    if(running) stop(); else start();
+  });
+  pipResetBtn.addEventListener('click', reset);
+
+  if(!('documentPictureInPicture' in window)){
+    pipHintEl.textContent = 'PIP requer Chrome/Edge recentes, fora de um iframe restrito.';
+  }
+
+  render();
+})();
+</script>
+
+<script>
+(function(){
+  // ---------- Abas ----------
+  const tabBtnTimer = document.getElementById('tabBtnTimer');
+  const tabBtnLoot = document.getElementById('tabBtnLoot');
+  const panelTimer = document.getElementById('panelTimer');
+  const panelLoot = document.getElementById('panelLoot');
+
+  function activateTab(name){
+    const isTimer = name === 'timer';
+    tabBtnTimer.classList.toggle('active', isTimer);
+    tabBtnLoot.classList.toggle('active', !isTimer);
+    panelTimer.classList.toggle('active', isTimer);
+    panelLoot.classList.toggle('active', !isTimer);
+  }
+  tabBtnTimer.addEventListener('click', () => activateTab('timer'));
+  tabBtnLoot.addEventListener('click', () => activateTab('loot'));
+
+  // ---------- LootSplit ----------
+  const lootInput = document.getElementById('lootInput');
+  const lootCalcBtn = document.getElementById('lootCalcBtn');
+  const lootClearBtn = document.getElementById('lootClearBtn');
+  const lootErrorEl = document.getElementById('lootError');
+  const lootResultsEl = document.getElementById('lootResults');
+  const lootTotalBalanceEl = document.getElementById('lootTotalBalance');
+  const lootEqualShareEl = document.getElementById('lootEqualShare');
+  const lootTableBodyEl = document.getElementById('lootTableBody');
+  const lootTransfersListEl = document.getElementById('lootTransfersList');
+  const lootCopyAllBtn = document.getElementById('lootCopyAllBtn');
+
+  let lastComputation = null; // guarda o último cálculo pro botão "Copiar tudo"
+
+  function parseNumber(str){
+    const clean = String(str).replace(/[^\d-]/g, '');
+    const n = parseInt(clean, 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function fmtMoney(n){
+    const rounded = Math.round(n);
+    return rounded.toLocaleString('pt-BR');
+  }
+
+  // ---------- Copiar pra área de transferência ----------
+  function fallbackCopy(text){
+    let ok = false;
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e){ ok = false; }
+    return ok;
+  }
+
+  function flashCopied(btnEl){
+    if(!btnEl) return;
+    const original = btnEl.textContent;
+    btnEl.classList.add('copied');
+    btnEl.textContent = '✅';
+    setTimeout(() => {
+      btnEl.classList.remove('copied');
+      btnEl.textContent = original;
+    }, 1300);
+  }
+
+  function copyText(text, btnEl){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text)
+        .then(() => flashCopied(btnEl))
+        .catch(() => { if(fallbackCopy(text)) flashCopied(btnEl); });
+    } else {
+      if(fallbackCopy(text)) flashCopied(btnEl);
+    }
+  }
+
+  // Interpreta o texto colado do Party Hunt Analyser do Tibia
+  function parseAnalyser(text){
+    const lines = text.split(/\r?\n/);
+    const statRegex = /^(Loot|Supplies|Balance|Damage|Healing)\s*:\s*(-?[\d.,]+)/i;
+    const sessionDataRegex = /^Session data\s*:/i;
+    const sessionDurationRegex = /^Session\s*:\s*(.+)/i;
+    const lootTypeRegex = /^Loot Type\s*:/i;
+
+    const members = [];
+    let current = null;
+    let sessionDuration = '';
+
+    for(const rawLine of lines){
+      const line = rawLine.trim();
+      if(!line) continue;
+      if(sessionDataRegex.test(line) || lootTypeRegex.test(line)) continue;
+
+      const durationMatch = line.match(sessionDurationRegex);
+      if(durationMatch){
+        sessionDuration = durationMatch[1].trim();
+        continue;
+      }
+
+      const statMatch = line.match(statRegex);
+      if(statMatch){
+        if(current){
+          const key = statMatch[1].toLowerCase();
+          current[key] = parseNumber(statMatch[2]);
+        }
+        // stats antes do primeiro membro = totais do grupo; ignoramos aqui
+        // pois recalculamos o total a partir da soma dos membros.
+        continue;
+      }
+
+      // linha de nome de jogador (com ou sem "(Leader)")
+      let name = line;
+      let isLeader = false;
+      if(/\(leader\)\s*$/i.test(name)){
+        isLeader = true;
+        name = name.replace(/\s*\(leader\)\s*$/i, '').trim();
+      }
+      current = { name, isLeader, loot:0, supplies:0, balance:0, damage:0, healing:0 };
+      members.push(current);
+    }
+
+    return { members, sessionDuration };
+  }
+
+  function computeSettlements(members, equalShare){
+    const diffs = members.map(m => ({ name: m.name, diff: equalShare - m.balance }));
+    const creditors = diffs.filter(d => d.diff > 0.5).sort((a,b) => b.diff - a.diff).map(d => ({...d}));
+    const debtors = diffs.filter(d => d.diff < -0.5).map(d => ({ name: d.name, diff: -d.diff })).sort((a,b) => b.diff - a.diff);
+
+    const transactions = [];
+    let i = 0, j = 0;
+    while(i < creditors.length && j < debtors.length){
+      const amount = Math.min(creditors[i].diff, debtors[j].diff);
+      if(amount > 0.5){
+        transactions.push({ from: debtors[j].name, to: creditors[i].name, amount: Math.round(amount) });
+      }
+      creditors[i].diff -= amount;
+      debtors[j].diff -= amount;
+      if(creditors[i].diff <= 0.5) i++;
+      if(debtors[j].diff <= 0.5) j++;
+    }
+    return transactions;
+  }
+
+  function transferLine(t){
+    return t.from + ' to pay ' + t.amount + ' to ' + t.to + ' - Transfer ' + t.amount + ' to ' + t.to;
+  }
+
+  // Linha usada no resumo pro TeamSpeak — só o comando "Transfer X to Y" fica em negrito.
+  function transferLineBold(t){
+    return t.from + ' to pay ' + t.amount + ' to ' + t.to +
+           ' - [b]Transfer ' + t.amount + ' to ' + t.to + '[/b]';
+  }
+
+  function buildSummaryText(data){
+    const { transactions, totalBalance, equalShare, sessionDuration, excludedNames } = data;
+    const lines = [];
+    lines.push('LootSplit' + (sessionDuration ? ' — Sessão ' + sessionDuration : ''));
+    lines.push('Balance total: ' + fmtMoney(totalBalance) + ' gp');
+    lines.push('Divisão por pessoa: ' + fmtMoney(equalShare) + ' gp');
+    if(excludedNames && excludedNames.length > 0){
+      lines.push('Fora da divisão: ' + excludedNames.join(', '));
+    }
+    lines.push('');
+    lines.push('Transferências:');
+    if(transactions.length === 0){
+      lines.push('Tudo já está equilibrado — ninguém precisa pagar ninguém.');
+    } else {
+      transactions.forEach(t => {
+        lines.push(transferLineBold(t));
+      });
+    }
+    return lines.join('\n');
+  }
+
+  // Guarda a lista completa (com quem está incluído/excluído) pra recalcular ao marcar/desmarcar.
+  let currentMembers = [];
+  let currentSessionDuration = '';
+
+  function applySplit(){
+    const includedMembers = currentMembers.filter(m => m.included);
+    const totalBalance = includedMembers.reduce((sum, m) => sum + m.balance, 0);
+    const equalShare = includedMembers.length > 0 ? totalBalance / includedMembers.length : 0;
+
+    lootTotalBalanceEl.textContent = fmtMoney(totalBalance) + ' gp';
+    lootEqualShareEl.textContent = fmtMoney(equalShare) + ' gp / pessoa';
+
+    lootTableBodyEl.innerHTML = '';
+    currentMembers.forEach(m => {
+      const tr = document.createElement('tr');
+      if(!m.included) tr.classList.add('excluded-row');
+
+      const tdName = document.createElement('td');
+      tdName.className = 'loot-name-cell';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'loot-include-checkbox';
+      checkbox.checked = m.included;
+      checkbox.title = 'Incluir na divisão do loot';
+      checkbox.addEventListener('change', () => {
+        m.included = checkbox.checked;
+        applySplit();
+      });
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = m.name + (m.isLeader ? ' (Leader)' : '');
+      tdName.appendChild(checkbox);
+      tdName.appendChild(nameSpan);
+      tr.appendChild(tdName);
+
+      const tdLoot = document.createElement('td');
+      tdLoot.textContent = fmtMoney(m.loot);
+      tr.appendChild(tdLoot);
+
+      const tdSupplies = document.createElement('td');
+      tdSupplies.textContent = fmtMoney(m.supplies);
+      tr.appendChild(tdSupplies);
+
+      const tdBalance = document.createElement('td');
+      tdBalance.textContent = fmtMoney(m.balance);
+      tr.appendChild(tdBalance);
+
+      const tdAdjust = document.createElement('td');
+      if(!m.included){
+        tdAdjust.textContent = '— fora';
+      } else {
+        const adjust = equalShare - m.balance;
+        if(adjust > 0.5){
+          tdAdjust.textContent = '+' + fmtMoney(adjust);
+          tdAdjust.classList.add('positive');
+        } else if(adjust < -0.5){
+          tdAdjust.textContent = '-' + fmtMoney(Math.abs(adjust));
+          tdAdjust.classList.add('negative');
+        } else {
+          tdAdjust.textContent = '0';
+        }
+      }
+      tr.appendChild(tdAdjust);
+
+      lootTableBodyEl.appendChild(tr);
+    });
+
+    const transactions = includedMembers.length > 0 ? computeSettlements(includedMembers, equalShare) : [];
+    lootTransfersListEl.innerHTML = '';
+    if(transactions.length === 0){
+      const li = document.createElement('li');
+      li.className = 'empty-msg';
+      li.textContent = 'Tudo já está equilibrado — ninguém precisa pagar ninguém.';
+      lootTransfersListEl.appendChild(li);
+    } else {
+      transactions.forEach(t => {
+        const li = document.createElement('li');
+
+        const textSpan = document.createElement('span');
+        textSpan.className = 'transfer-text';
+        const fromStrong = document.createElement('strong');
+        fromStrong.textContent = t.from;
+        const toStrong1 = document.createElement('strong');
+        toStrong1.textContent = t.to;
+        const toStrong2 = document.createElement('strong');
+        toStrong2.textContent = t.to;
+        textSpan.appendChild(fromStrong);
+        textSpan.appendChild(document.createTextNode(' to pay ' + t.amount + ' to '));
+        textSpan.appendChild(toStrong1);
+        textSpan.appendChild(document.createTextNode(' - Transfer ' + t.amount + ' to '));
+        textSpan.appendChild(toStrong2);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'transfer-copy-btn';
+        copyBtn.title = 'Copiar: ' + transferLine(t);
+        copyBtn.textContent = '📋';
+        copyBtn.addEventListener('click', () => {
+          copyText(transferLine(t), copyBtn);
+        });
+
+        li.appendChild(textSpan);
+        li.appendChild(copyBtn);
+        lootTransfersListEl.appendChild(li);
+      });
+    }
+
+    const excludedNames = currentMembers.filter(m => !m.included).map(m => m.name);
+    lastComputation = { transactions, totalBalance, equalShare, sessionDuration: currentSessionDuration, excludedNames };
+    lootResultsEl.style.display = 'block';
+  }
+
+  function calculateLootSplit(skipSave){
+    lootErrorEl.textContent = '';
+    lootResultsEl.style.display = 'none';
+    lastComputation = null;
+
+    const text = lootInput.value;
+    if(!text.trim()){
+      lootErrorEl.textContent = 'Cole o texto do Party Hunt Analyser antes de calcular.';
+      return;
+    }
+
+    const { members, sessionDuration } = parseAnalyser(text);
+    if(members.length === 0){
+      lootErrorEl.textContent = 'Não consegui identificar nenhum jogador nesse texto. Confira se colou o texto completo do Party Hunt Analyser.';
+      return;
+    }
+
+    currentMembers = members.map(m => ({ ...m, included: true }));
+    currentSessionDuration = sessionDuration;
+    applySplit();
+
+    if(!skipSave){
+      addToHistory(text, sessionDuration, members);
+    }
+  }
+
+  lootCalcBtn.addEventListener('click', () => calculateLootSplit(false));
+  lootClearBtn.addEventListener('click', () => {
+    lootInput.value = '';
+    lootErrorEl.textContent = '';
+    lootResultsEl.style.display = 'none';
+    lastComputation = null;
+    currentMembers = [];
+  });
+  lootCopyAllBtn.addEventListener('click', () => {
+    if(!lastComputation) return;
+    copyText(buildSummaryText(lastComputation), lootCopyAllBtn);
+  });
+
+  // ---------- Histórico salvo (localStorage) ----------
+  // Funciona quando o arquivo é aberto direto no navegador (fora do preview do Claude).
+  const LOOT_HISTORY_KEY = 'lootsplit_history_v1';
+  const lootHistoryListEl = document.getElementById('lootHistoryList');
+  const lootHistoryClearBtn = document.getElementById('lootHistoryClearBtn');
+  let storageAvailable = true;
+
+  function loadHistory(){
+    try{
+      const raw = localStorage.getItem(LOOT_HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      storageAvailable = false;
+      return [];
+    }
+  }
+
+  function saveHistoryArray(arr){
+    try{
+      localStorage.setItem(LOOT_HISTORY_KEY, JSON.stringify(arr));
+    }catch(e){
+      storageAvailable = false;
+    }
+  }
+
+  function fmtHistoryDate(ts){
+    const d = new Date(ts);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function renderHistoryList(){
+    const history = loadHistory();
+    lootHistoryListEl.innerHTML = '';
+
+    if(!storageAvailable){
+      const div = document.createElement('div');
+      div.className = 'loot-history-empty';
+      div.textContent = 'Histórico indisponível neste ambiente. Abra o arquivo .html direto no Chrome/Edge (fora do preview do Claude) pra usar o cache.';
+      lootHistoryListEl.appendChild(div);
+      return;
+    }
+
+    if(history.length === 0){
+      const div = document.createElement('div');
+      div.className = 'loot-history-empty';
+      div.textContent = 'Nenhuma sessão salva ainda — toda vez que você calcular um split, ele fica guardado aqui.';
+      lootHistoryListEl.appendChild(div);
+      return;
+    }
+
+    history.forEach(entry => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+
+      const info = document.createElement('div');
+      const dateDiv = document.createElement('div');
+      dateDiv.className = 'history-item-date';
+      dateDiv.textContent = fmtHistoryDate(entry.savedAt);
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'history-item-meta';
+      metaDiv.textContent = (entry.sessionDuration ? 'Sessão ' + entry.sessionDuration + ' · ' : '') +
+        entry.memberCount + ' jogadores · Balance ' + fmtMoney(entry.totalBalance) + ' gp';
+      info.appendChild(dateDiv);
+      info.appendChild(metaDiv);
+
+      const actions = document.createElement('div');
+      actions.className = 'history-item-actions';
+
+      const loadBtn = document.createElement('button');
+      loadBtn.className = 'history-load-btn';
+      loadBtn.textContent = 'Carregar';
+      loadBtn.addEventListener('click', () => {
+        lootInput.value = entry.rawText;
+        calculateLootSplit(true);
+        lootInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'history-delete-btn';
+      delBtn.title = 'Remover do histórico';
+      delBtn.textContent = '🗑';
+      delBtn.addEventListener('click', () => {
+        const updated = loadHistory().filter(e => e.id !== entry.id);
+        saveHistoryArray(updated);
+        renderHistoryList();
+      });
+
+      actions.appendChild(loadBtn);
+      actions.appendChild(delBtn);
+      item.appendChild(info);
+      item.appendChild(actions);
+      lootHistoryListEl.appendChild(item);
+    });
+  }
+
+  function addToHistory(rawText, sessionDuration, members){
+    if(!storageAvailable) return;
+    const totalBalance = members.reduce((sum, m) => sum + m.balance, 0);
+    const entry = {
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      savedAt: Date.now(),
+      sessionDuration,
+      totalBalance,
+      memberCount: members.length,
+      rawText
+    };
+    const history = loadHistory();
+    history.unshift(entry);
+    while(history.length > 20) history.pop(); // guarda só as 20 últimas sessões
+    saveHistoryArray(history);
+    renderHistoryList();
+  }
+
+  lootHistoryClearBtn.addEventListener('click', () => {
+    if(loadHistory().length === 0) return;
+    if(confirm('Apagar todo o histórico de LootSplit salvo neste navegador?')){
+      saveHistoryArray([]);
+      renderHistoryList();
+    }
+  });
+
+  renderHistoryList();
+})();
+</script>
+</body>
+</html>
