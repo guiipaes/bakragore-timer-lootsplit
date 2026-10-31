@@ -14,6 +14,7 @@
     <div class="app-tabs">
       <button class="tab-btn active" data-tab="timer" id="tabBtnTimer">⏱ Timer Bakragore</button>
       <button class="tab-btn" data-tab="loot" id="tabBtnLoot">💰 LootSplit</button>
+      <button class="tab-btn" data-tab="imbue" id="tabBtnImbue">🧪 Imbuements</button>
     </div>
 
     <div id="panelTimer" class="tab-panel active">
@@ -164,6 +165,71 @@
         </div>
       </div>
     </div><!-- /panelLoot -->
+    <div id="panelImbue" class="tab-panel">
+      <div class="rig">
+        <div class="eyebrow">Tibia — Hunt Analyser</div>
+        <h1>Imbuements</h1>
+
+        <div class="imb-hero">
+          <span class="imb-hero-label">Imbuements por hora</span>
+          <span class="imb-hero-value"><span id="imbPerHour">0</span> <small>gp/h</small></span>
+          <span class="imb-hero-note" id="imbPerHourNote"></span>
+          <div class="imb-split">
+            <div class="imb-bar" id="imbBar" role="img" aria-label="Proporção entre suprimentos e imbuements"><i id="imbBarSup"></i><i id="imbBarImb"></i></div>
+            <div class="imb-legend">
+              <span><i class="imb-dot imb-dot-sup"></i>Suprimentos <b id="imbLegSup">—</b></span>
+              <span><i class="imb-dot imb-dot-imb"></i>Imbuements <b id="imbLegImb">0</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="loot-summary">
+          <div class="loot-summary-row"><span>Tempo da sessão</span><strong id="imbTime">—</strong></div>
+          <div class="loot-summary-row"><span>Gasto de imbuements na sessão</span><strong id="imbSession">—</strong></div>
+          <div class="loot-summary-row"><span>Balance do analyser</span><strong id="imbBalance">—</strong></div>
+          <div class="loot-summary-row"><span>Lucro depois dos imbuements</span><strong id="imbNet">—</strong></div>
+          <div class="loot-summary-row"><span>Loot mínimo/h para empatar</span><strong id="imbBreakeven">—</strong></div>
+        </div>
+
+        <div class="imb-section-title">
+          <span>1. Hunt Analyser</span>
+          <button id="imbClearBtn" class="ghost small" data-act="clear-an">Limpar</button>
+        </div>
+        <p class="loot-instructions">
+          No Tibia, abra o Hunt Analyser (solo), copie os dados da sessão e cole abaixo. Já vem um exemplo colado: apague e cole o seu.
+        </p>
+        <textarea id="imbAnalyser" class="loot-textarea" spellcheck="false" placeholder="Session data: From 2026-10-31, 13:18:46 to 2026-10-31, 13:24:35&#10;Session: 00:05h&#10;Loot: 94,047&#10;Supplies: 8,060&#10;Balance: 85,987"></textarea>
+        <div id="imbStatus" class="imb-status" role="status"></div>
+
+        <div class="imb-section-title">
+          <span>2. Seus imbuements</span>
+          <button id="imbSampleBtn" class="ghost small" data-act="sample">Restaurar exemplo</button>
+        </div>
+        <p class="loot-instructions">
+          Escolha o imbuement, o tier e a quantidade. Void Powerful em duas peças é Void, III, quantidade 2. Os preços dos materiais começam no valor de NPC: ajuste para o que você paga.
+        </p>
+
+        <div class="imb-tokenline">
+          <label for="imbTokenPrice">Preço do Gold Token (gp)</label>
+          <input id="imbTokenPrice" class="imb-input" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+        </div>
+
+        <div id="imbRows"></div>
+
+        <div class="controls">
+          <button id="imbAddBtn" class="primary" data-act="add">+ Imbuement</button>
+        </div>
+
+        <div class="imb-total">
+          <span id="imbTotalLabel">Total</span>
+          <strong id="imbTotalValue">0 gp/h</strong>
+        </div>
+
+        <p class="imb-foot">
+          Custo por hora = (materiais + taxa do NPC) ÷ 20 h, vezes a quantidade. Taxa do NPC por slot: Basic 7.500, Intricate 60.000, Powerful 250.000 gp. Gold Tokens só valem para Strike, Vampirism e Void (2, 4 e 6 tokens). Materiais marcados como referência podem estar desatualizados: confira no jogo.
+        </p>
+      </div>
+    </div><!-- /panelImbue -->
   </div><!-- /app-wrap -->
 
 <script src="script.js"></script>

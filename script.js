@@ -319,20 +319,18 @@
 // ===========================================================
 (function(){
   // ---------- Abas ----------
-  const tabBtnTimer = document.getElementById('tabBtnTimer');
-  const tabBtnLoot = document.getElementById('tabBtnLoot');
-  const panelTimer = document.getElementById('panelTimer');
-  const panelLoot = document.getElementById('panelLoot');
+  const tabBtns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  const panels = {
+    timer: document.getElementById('panelTimer'),
+    loot: document.getElementById('panelLoot'),
+    imbue: document.getElementById('panelImbue')
+  };
 
   function activateTab(name){
-    const isTimer = name === 'timer';
-    tabBtnTimer.classList.toggle('active', isTimer);
-    tabBtnLoot.classList.toggle('active', !isTimer);
-    panelTimer.classList.toggle('active', isTimer);
-    panelLoot.classList.toggle('active', !isTimer);
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    Object.keys(panels).forEach(k => panels[k].classList.toggle('active', k === name));
   }
-  tabBtnTimer.addEventListener('click', () => activateTab('timer'));
-  tabBtnLoot.addEventListener('click', () => activateTab('loot'));
+  tabBtns.forEach(b => b.addEventListener('click', () => activateTab(b.dataset.tab)));
 
   // ---------- LootSplit ----------
   const lootInput = document.getElementById('lootInput');
@@ -767,4 +765,406 @@
   });
 
   renderHistoryList();
+})();
+
+// ===========================================================
+// IMBUEMENTS — calculadora de custo de imbuements por hora
+// Lê o Hunt Analyser (solo) colado e soma o custo dos imbuements.
+// ===========================================================
+(function(){
+  'use strict';
+
+
+var FEES={1:7500,2:60000,3:250000};
+var TOK={1:2,2:4,3:6};
+var TIER=['Basic','Intricate','Powerful'];
+var ROM=['I','II','III'];
+var KEY='imbue_calc_v1';
+
+var NPC={
+ 'Vampire Teeth':275,'Bloody Pincers':100,'Piece of Dead Brain':420,
+ 'Rope Belt':66,'Silencer Claws':390,'Some Grimeleech Wings':1200,
+ 'Protective Charm':60,'Sabretooth':400,'Vexclaw Talon':1100,
+ 'Fiery Heart':375,'Green Dragon Scale':100,'Demon Horn':1000,
+ 'Swamp Grass':20,'Poisonous Slime':50,'Slime Heart':160,
+ 'Frosty Heart':280,'Seacrest Hair':260,'Polar Bear Paw':30,
+ 'Rorc Feather':70,'Peacock Feather Fan':350,'Energy Vein':270,
+ 'Pile of Grave Earth':25,'Demonic Skeletal Hand':80,'Petrified Scream':250,
+ 'Elven Scouting Glass':50,'Elven Hoof':115,'Metal Spike':320,
+ 'Cyclops Toe':55,'Ogre Nose Ring':210,"Warmaster's Wristguards":200,
+ "Lion's Mane":60,"Mooh'tah Shell":110,'War Crystal':460,
+ 'Orc Tooth':150,'Battle Stone':290,'Moohtant Horn':140,
+ 'Elvish Talisman':45,'Broken Shamanic Staff':35,'Strand of Medusa Hair':600,
+ 'Piece of Scarab Shell':45,'Brimstone Shell':210,'Frazzle Skin':400,
+ 'Damselfly Wing':20,'Compass':45,'Waspoid Wing':190,
+ 'Wereboar Hooves':175,'Crystallized Anger':400,'Quill':1100,
+ 'Fairy Wing':200,'Little Bowl of Myrrh':500,'Goosebump Leather':650,
+ 'Flask of Embalming Fluid':30,'Gloom Wolf Fur':70,'Mystical Hourglass':700,
+ 'Piece of Swampling Wood':30,'Snake Skin':400,'Brimstone Fangs':380,
+ 'Winter Wolf Fur':20,'Thick Fur':150,'Deepling Warts':180,
+ 'Green Dragon Leather':100,'Blazing Bone':610,'Draken Sulphur':550,
+ 'Wyvern Talisman':265,'Crawler Head Plating':210,'Wyrm Scale':400,
+ 'Cultish Robe':150,'Cultish Mask':280,'Hellspawn Tail':475
+};
+
+function pct(a,t){return a.map(function(p){return p+'% '+t;});}
+function elem(t){return pct([10,25,50],'do dano físico vira '+t);}
+function skill(n){return ['+1 '+n,'+2 '+n,'+4 '+n];}
+
+var IMBS=[
+ {id:'vampirism',name:'Vampirism',tag:'leech de vida',mats:[['Vampire Teeth',25],['Bloody Pincers',15],['Piece of Dead Brain',5]],token:1,ver:1,fx:pct([5,10,25],'do dano vira vida')},
+ {id:'void',name:'Void',tag:'leech de mana',mats:[['Rope Belt',25],['Silencer Claws',25],['Some Grimeleech Wings',5]],token:1,ver:1,fx:pct([3,5,8],'do dano vira mana')},
+ {id:'strike',name:'Strike',tag:'dano crítico',mats:[['Protective Charm',20],['Sabretooth',25],['Vexclaw Talon',5]],token:1,ver:1,fx:['+5% de dano e +5% de chance crítica','+15% de dano e +5% de chance crítica','+40% de dano e +5% de chance crítica']},
+ {id:'scorch',name:'Scorch',tag:'dano de fogo',mats:[['Fiery Heart',25],['Green Dragon Scale',5],['Demon Horn',5]],ver:1,fx:elem('fogo')},
+ {id:'venom',name:'Venom',tag:'dano de terra',mats:[['Swamp Grass',25],['Poisonous Slime',20],['Slime Heart',2]],ver:1,fx:elem('terra')},
+ {id:'frost',name:'Frost',tag:'dano de gelo',mats:[['Frosty Heart',25],['Seacrest Hair',10],['Polar Bear Paw',5]],ver:1,fx:elem('gelo')},
+ {id:'electrify',name:'Electrify',tag:'dano de energia',mats:[['Rorc Feather',25],['Peacock Feather Fan',5],['Energy Vein',1]],ver:1,fx:elem('energia')},
+ {id:'reap',name:'Reap',tag:'dano de morte',mats:[['Pile of Grave Earth',25],['Demonic Skeletal Hand',20],['Petrified Scream',5]],ver:1,fx:elem('morte')},
+ {id:'precision',name:'Precision',tag:'distance',mats:[['Elven Scouting Glass',25],['Elven Hoof',20],['Metal Spike',10]],ver:1,fx:skill('distance')},
+ {id:'bash',name:'Bash',tag:'club',mats:[['Cyclops Toe',20],['Ogre Nose Ring',15],["Warmaster's Wristguards",10]],ver:0,fx:skill('club')},
+ {id:'slash',name:'Slash',tag:'sword',mats:[["Lion's Mane",25],["Mooh'tah Shell",25],['War Crystal',5]],ver:1,fx:skill('sword')},
+ {id:'chop',name:'Chop',tag:'axe',mats:[['Orc Tooth',20],['Battle Stone',25],['Moohtant Horn',20]],ver:0,fx:skill('axe')},
+ {id:'epiphany',name:'Epiphany',tag:'magic level',mats:[['Elvish Talisman',25],['Broken Shamanic Staff',15],['Strand of Medusa Hair',15]],ver:0,fx:skill('magic level')},
+ {id:'blockade',name:'Blockade',tag:'shielding',mats:[['Piece of Scarab Shell',20],['Brimstone Shell',25],['Frazzle Skin',25]],ver:0,fx:skill('shielding')},
+ {id:'swiftness',name:'Swiftness',tag:'velocidade',mats:[['Damselfly Wing',15],['Compass',25],['Waspoid Wing',20]],ver:1,fx:['+10 de velocidade','+15 de velocidade','+30 de velocidade']},
+ {id:'vibrancy',name:'Vibrancy',tag:'remove paralisia',mats:[['Wereboar Hooves',20],['Crystallized Anger',15],['Quill',5]],ver:0},
+ {id:'featherweight',name:'Featherweight',tag:'capacidade',mats:[['Fairy Wing',20],['Little Bowl of Myrrh',10],['Goosebump Leather',5]],ver:0},
+ {id:'lich',name:'Lich Shroud',tag:'proteção de morte',mats:[['Flask of Embalming Fluid',25],['Gloom Wolf Fur',20],['Mystical Hourglass',5]],ver:0},
+ {id:'snake',name:'Snake Skin',tag:'proteção de terra',mats:[['Piece of Swampling Wood',25],['Snake Skin',20],['Brimstone Fangs',10]],ver:0},
+ {id:'quara',name:'Quara Scale',tag:'proteção de gelo',mats:[['Winter Wolf Fur',25],['Thick Fur',15],['Deepling Warts',10]],ver:0},
+ {id:'dragon',name:'Dragon Hide',tag:'proteção de fogo',mats:[['Green Dragon Leather',20],['Blazing Bone',10],['Draken Sulphur',5]],ver:0},
+ {id:'cloud',name:'Cloud Fabric',tag:'proteção de energia',mats:[['Wyvern Talisman',20],['Crawler Head Plating',15],['Wyrm Scale',10]],ver:0},
+ {id:'demon',name:'Demon Presence',tag:'proteção sagrada',mats:[['Cultish Robe',25],['Cultish Mask',25],['Hellspawn Tail',20]],ver:0}
+];
+var IMB={}; IMBS.forEach(function(i){IMB[i.id]=i;});
+
+var uid=0;
+function nid(){uid++;return 'i'+uid+Math.random().toString(36).slice(2,6);}
+function num(v){var n=parseFloat(v);return isFinite(n)&&n>0?n:0;}
+function fmt(n){return Math.round(n).toLocaleString('pt-BR');}
+function fmtS(n){return (n<0?'−':'')+fmt(Math.abs(n));}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fmtDur(h){
+  var s=Math.round(h*3600),hh=Math.floor(s/3600),mm=Math.floor((s%3600)/60),ss=s%60;
+  function p(x){return (x<10?'0':'')+x;}
+  return hh>0?hh+' h '+p(mm)+' min':mm+' min '+p(ss)+' s';
+}
+
+var state=null;
+function price(m){var v=state.prices[m];return v!==undefined?num(v):(NPC[m]||0);}
+function qtyOf(r){var q=Math.floor(num(r.qty));return q<1?1:q;}
+
+function rowCalc(r){
+  var imb=IMB[r.imb],t=r.tier,q=qtyOf(r);
+  var mats=imb.mats.slice(0,t).map(function(m){return {n:m[0],a:m[1],p:price(m[0])};});
+  var token=!!(r.token&&imb.token);
+  var matCost=token?TOK[t]*num(state.tokenPrice):mats.reduce(function(x,m){return x+m.a*m.p;},0);
+  var unit=matCost+FEES[t];
+  return {imb:imb,mats:mats,token:token,matCost:matCost,fee:FEES[t],unit:unit,qty:q,total:unit*q,perHour:unit*q/20};
+}
+
+/* Lê o texto do Hunt Analyser do Tibia (inglês). */
+function parseAnalyser(t){
+  var r={hours:0,loot:null,supplies:null,balance:null,xph:null,found:[],missing:[]};
+  function n(re){
+    var m=t.match(re); if(!m)return null;
+    var v=m[1].replace(/[^\d-]/g,'');
+    return (v===''||v==='-')?null:parseInt(v,10);
+  }
+  r.loot=n(/^\s*Loot:\s*(-?[\d.,]+)/im);
+  r.supplies=n(/^\s*Supplies:\s*(-?[\d.,]+)/im);
+  r.balance=n(/^\s*Balance:\s*(-?[\d.,]+)/im);
+  r.xph=n(/^\s*XP\/h:\s*(-?[\d.,]+)/im);
+  var from=t.match(/From\s+(\d{4}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})\s+to\s+(\d{4}-\d{2}-\d{2}),?\s*(\d{2}:\d{2}:\d{2})/i);
+  if(from){
+    var a=new Date(from[1]+'T'+from[2]),b=new Date(from[3]+'T'+from[4]);
+    var d=(b-a)/3600000;
+    if(isFinite(d)&&d>0)r.hours=d;
+  }
+  if(!r.hours){
+    var s=t.match(/Session:\s*(\d+):(\d{2})\s*h/i);
+    if(s)r.hours=parseInt(s[1],10)+parseInt(s[2],10)/60;
+  }
+  if(r.hours>0)r.found.push('tempo'); else r.missing.push('tempo da sessão');
+  if(r.loot!==null)r.found.push('Loot'); else r.missing.push('Loot');
+  if(r.supplies!==null)r.found.push('Supplies'); else r.missing.push('Supplies');
+  if(r.balance!==null)r.found.push('Balance'); else r.missing.push('Balance');
+  return r;
+}
+
+function totalsCalc(){
+  var imbH=0;
+  state.rows.forEach(function(r){imbH+=rowCalc(r).perHour;});
+  var a=parseAnalyser(state.analyser||'');
+  var h=a.hours,out={imbH:imbH,a:a,hours:h,session:null,supH:null,lootH:null,net:null,netH:null,be:null};
+  if(h>0){
+    out.session=imbH*h;
+    if(a.supplies!==null)out.supH=a.supplies/h;
+    if(a.loot!==null)out.lootH=a.loot/h;
+    if(a.balance!==null){out.net=a.balance-out.session;out.netH=out.net/h;}
+    out.be=(out.supH===null?0:out.supH)+imbH;
+  }
+  return out;
+}
+
+
+var EXAMPLE_AN=[
+'Session data: From 2026-10-31, 13:18:46 to 2026-10-31, 13:24:35',
+'Session: 00:05h',
+'XP Gain: 410,515',
+'XP/h: 4,234,842',
+'Loot: 94,047',
+'Supplies: 8,060',
+'Balance: 85,987',
+'Damage: 354,955',
+'Damage/h: 3,950,430',
+'Healing: 65,455',
+'Healing/h: 728,473',
+'Killed Monsters:',
+'  45x werelion',
+'  58x werelioness',
+'  18x white lion',
+'Looted Items:',
+'  19x a small enchanted sapphire',
+'  18x a small enchanted ruby',
+'  2x terra boots',
+'  2x magma legs',
+'  2x a white pearl',
+'  1x a black pearl',
+'  1x a small diamond',
+'  3102x a gold coin',
+'  313x a platinum coin',
+'  1x a yellow gem',
+'  6x an ankh',
+'  1x a war hammer',
+'  5x a serpent sword',
+'  5x a soul orb',
+'  1x a titan axe',
+'  46x a great spirit potion',
+'  22x a lion\'s mane',
+'  2x an onyx chip',
+'  1x a coral brooch',
+'  1x a rainbow quartz',
+'  2x an ivory carving'
+].join('\n');
+
+function sample(){
+  return {
+    analyser:EXAMPLE_AN,
+    rows:[
+      {id:nid(),imb:'void',tier:3,qty:2,token:false,open:false},
+      {id:nid(),imb:'strike',tier:3,qty:1,token:false,open:false},
+      {id:nid(),imb:'vampirism',tier:3,qty:1,token:false,open:false},
+      {id:nid(),imb:'bash',tier:2,qty:1,token:false,open:false}
+    ],
+    prices:{},tokenPrice:0
+  };
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY); if(!raw)return null;
+    var s=JSON.parse(raw);
+    if(!s||!Array.isArray(s.rows)||typeof s.analyser!=='string')return null;
+    s.rows=s.rows.filter(function(r){return IMB[r.imb];});
+    s.rows.forEach(function(r){r.id=r.id||nid();r.tier=(r.tier===1||r.tier===2||r.tier===3)?r.tier:3;r.qty=qtyOf(r);r.token=!!r.token;r.open=!!r.open;});
+    s.prices=(s.prices&&typeof s.prices==='object')?s.prices:{};
+    s.tokenPrice=num(s.tokenPrice);
+    return s;
+  }catch(e){return null;}
+}
+
+
+  // ---------- Interface ----------
+  const $id = function(id){ return document.getElementById(id); };
+  const panel = $id('panelImbue');
+  const analyserEl = $id('imbAnalyser');
+  const rowsEl = $id('imbRows');
+  const tokenEl = $id('imbTokenPrice');
+  const statusEl = $id('imbStatus');
+
+  function setText(id, v){ $id(id).textContent = v; }
+
+  function rowOf(el){
+    const e = el.closest('[data-row]');
+    return e ? state.rows.filter(function(x){ return x.id === e.dataset.row; })[0] : null;
+  }
+
+  function rowHTML(r){
+    const c = rowCalc(r), imb = c.imb;
+    const opts = IMBS.map(function(i){
+      return '<option value="'+i.id+'"'+(i.id===r.imb?' selected':'')+'>'+esc(i.name)+' ('+esc(i.tag)+')</option>';
+    }).join('');
+    const tiers = [1,2,3].map(function(t){
+      return '<button type="button" data-act="tier" data-t="'+t+'" aria-pressed="'+(r.tier===t)+'" title="'+TIER[t-1]+'">'+ROM[t-1]+'</button>';
+    }).join('');
+
+    let mats;
+    if(c.token){
+      mats = '<tr><td><span class="amt">'+TOK[r.tier]+'×</span>Gold Token</td>'+
+        '<td><input class="imb-input" type="number" inputmode="numeric" min="0" step="1" value="'+num(state.tokenPrice)+'" data-f="tokenPrice" aria-label="Preço do Gold Token"></td>'+
+        '<td data-sub="0">'+fmt(c.matCost)+'</td></tr>';
+    } else {
+      mats = c.mats.map(function(m, mi){
+        return '<tr><td><span class="amt">'+m.a+'×</span>'+esc(m.n)+'</td>'+
+          '<td><input class="imb-input" type="number" inputmode="numeric" min="0" step="1" value="'+m.p+'" data-f="price" data-mat="'+esc(m.n)+'" aria-label="Preço de '+esc(m.n)+'"></td>'+
+          '<td data-sub="'+mi+'">'+fmt(m.a*m.p)+'</td></tr>';
+      }).join('');
+    }
+
+    const fx = (imb.fx ? '<em>'+TIER[r.tier-1]+':</em> '+esc(imb.fx[r.tier-1]) : '<em>'+TIER[r.tier-1]+'</em>') +
+      (imb.ver ? '' : ' · materiais de referência, confira no jogo');
+    const tokenBox = imb.token
+      ? '<label class="imb-check"><input type="checkbox" data-f="token"'+(r.token?' checked':'')+'> Comprar com Gold Tokens ('+TOK[r.tier]+' por imbuement)</label>' +
+        (c.token && !num(state.tokenPrice) ? '<p class="imb-warn">Defina o preço do Gold Token acima.</p>' : '')
+      : '';
+
+    return '<div class="imb-row" data-row="'+r.id+'">'+
+      '<div class="imb-row-top"><select class="imb-select" data-f="imb" aria-label="Imbuement">'+opts+'</select>'+
+      '<button type="button" class="imb-x" data-act="rm" aria-label="Remover imbuement" title="Remover">×</button></div>'+
+      '<div class="imb-row-mid">'+
+        '<div class="imb-seg" role="group" aria-label="Tier">'+tiers+'</div>'+
+        '<div class="imb-qty" role="group" aria-label="Quantidade"><button type="button" data-act="qminus" aria-label="Diminuir">−</button>'+
+        '<input class="imb-input" data-f="qty" type="number" inputmode="numeric" min="1" step="1" value="'+c.qty+'" aria-label="Quantidade">'+
+        '<button type="button" data-act="qplus" aria-label="Aumentar">+</button></div>'+
+        '<div class="imb-ph"><span>por hora</span><b data-k="ph">'+fmt(c.perHour)+'</b></div>'+
+      '</div>'+
+      '<div class="imb-fx">'+fx+'</div>'+
+      tokenBox+
+      '<details'+(r.open?' open':'')+'><summary>Materiais e preços (1 unidade)</summary><div class="imb-mats-wrap"><table class="imb-mats">'+
+        '<thead><tr><th>Material</th><th>Preço un.</th><th>Subtotal</th></tr></thead><tbody>'+mats+
+        '<tr><td>Taxa do NPC</td><td></td><td data-k="fee">'+fmt(c.fee)+'</td></tr>'+
+        '<tr class="sum"><td>Custo por unidade</td><td></td><td data-k="unit">'+fmt(c.unit)+'</td></tr>'+
+      '</tbody></table></div></details>'+
+    '</div>';
+  }
+
+  function render(){
+    rowsEl.innerHTML = state.rows.length
+      ? state.rows.map(rowHTML).join('')
+      : '<div class="loot-history-empty">Nenhum imbuement. Clique em + Imbuement.</div>';
+    update();
+  }
+
+  function update(){
+    const t = totalsCalc(), a = t.a, h = t.hours;
+
+    state.rows.forEach(function(r){
+      const c = rowCalc(r);
+      const el = panel.querySelector('[data-row="'+r.id+'"]');
+      if(!el) return;
+      function st(k, v){ const e = el.querySelector('[data-k="'+k+'"]'); if(e) e.textContent = v; }
+      st('ph', fmt(c.perHour)); st('fee', fmt(c.fee)); st('unit', fmt(c.unit));
+      if(c.token){
+        const s0 = el.querySelector('[data-sub="0"]'); if(s0) s0.textContent = fmt(c.matCost);
+      } else {
+        c.mats.forEach(function(m, mi){
+          const s = el.querySelector('[data-sub="'+mi+'"]'); if(s) s.textContent = fmt(m.a*m.p);
+        });
+      }
+    });
+    Array.prototype.forEach.call(panel.querySelectorAll('input[data-mat]'), function(i){
+      if(i !== document.activeElement){ const v = String(price(i.dataset.mat)); if(i.value !== v) i.value = v; }
+    });
+    Array.prototype.forEach.call(panel.querySelectorAll('input[data-f="tokenPrice"]'), function(i){
+      if(i !== document.activeElement){ const v = num(state.tokenPrice); const s = v ? String(v) : ''; if(i.value !== s) i.value = s; }
+    });
+    if(tokenEl !== document.activeElement){
+      const v = num(state.tokenPrice); const s = v ? String(v) : '';
+      if(tokenEl.value !== s) tokenEl.value = s;
+    }
+
+    // leitura do analyser
+    if(!String(state.analyser).trim()){
+      statusEl.className = 'imb-status';
+      statusEl.textContent = 'Cole o texto do Hunt Analyser acima.';
+    } else if(a.missing.length){
+      statusEl.className = 'imb-status err';
+      statusEl.textContent = 'Não encontrei: ' + a.missing.join(', ') + '. Confira se o texto está completo e em inglês.';
+    } else {
+      statusEl.className = 'imb-status ok';
+      statusEl.textContent = 'Analyser lido: ' + a.found.join(', ') + '.';
+    }
+
+    // resultado
+    const nUn = state.rows.reduce(function(x, r){ return x + qtyOf(r); }, 0);
+    setText('imbPerHour', fmt(t.imbH));
+    setText('imbPerHourNote', nUn + (nUn === 1 ? ' imbuement' : ' imbuements') + ' · cada um dura 20 h');
+    setText('imbLegSup', t.supH !== null ? fmt(t.supH) + ' gp/h' : '—');
+    setText('imbLegImb', fmt(t.imbH) + ' gp/h');
+    const sup = t.supH || 0, tot = sup + t.imbH;
+    const sp = tot > 0 ? sup / tot * 100 : 0, ip = tot > 0 ? t.imbH / tot * 100 : 0;
+    $id('imbBarSup').style.width = sp + '%';
+    $id('imbBarImb').style.width = ip + '%';
+    $id('imbBar').setAttribute('aria-label', 'Suprimentos ' + Math.round(sp) + '% e imbuements ' + Math.round(ip) + '% do custo por hora');
+
+    setText('imbTime', h > 0 ? fmtDur(h) : '—');
+    setText('imbSession', h > 0 ? fmt(t.session) + ' gp' : '—');
+    setText('imbBalance', a.balance !== null ? fmtS(a.balance) + ' gp' : '—');
+    const netEl = $id('imbNet');
+    if(t.net !== null){
+      netEl.textContent = fmtS(t.net) + ' gp (' + fmtS(t.netH) + '/h)';
+      netEl.className = t.net >= 0 ? 'imb-pos' : 'imb-neg';
+    } else {
+      netEl.textContent = '—';
+      netEl.className = '';
+    }
+    setText('imbBreakeven', t.be !== null ? fmt(t.be) + ' gp/h' : '—');
+    setText('imbTotalLabel', 'Total: ' + nUn + (nUn === 1 ? ' imbuement' : ' imbuements'));
+    setText('imbTotalValue', fmt(t.imbH) + ' gp/h');
+    save();
+  }
+
+  panel.addEventListener('click', function(e){
+    const b = e.target.closest('[data-act]'); if(!b) return;
+    const act = b.dataset.act, r = rowOf(b);
+    if(act === 'add'){
+      const used = state.rows.map(function(x){ return x.imb; });
+      const pick = IMBS.filter(function(i){ return used.indexOf(i.id) < 0; })[0] || IMBS[0];
+      state.rows.push({ id: nid(), imb: pick.id, tier: 3, qty: 1, token: false, open: false });
+      render();
+    }
+    else if(act === 'rm' && r){ state.rows = state.rows.filter(function(x){ return x !== r; }); render(); }
+    else if(act === 'tier' && r){ r.tier = parseInt(b.dataset.t, 10); render(); }
+    else if(act === 'qplus' && r){ r.qty = qtyOf(r) + 1; render(); }
+    else if(act === 'qminus' && r){ r.qty = Math.max(1, qtyOf(r) - 1); render(); }
+    else if(act === 'sample'){
+      const keepTok = state.tokenPrice, keepPrices = state.prices;
+      state = sample();
+      state.tokenPrice = keepTok; state.prices = keepPrices;
+      analyserEl.value = state.analyser;
+      render();
+    }
+    else if(act === 'clear-an'){ state.analyser = ''; analyserEl.value = ''; update(); analyserEl.focus(); }
+  });
+
+  panel.addEventListener('change', function(e){
+    const t = e.target, f = t.dataset && t.dataset.f; if(!f) return;
+    const r = rowOf(t);
+    if(f === 'imb' && r){ r.imb = t.value; if(!IMB[r.imb].token) r.token = false; render(); }
+    else if(f === 'token' && r){ r.token = t.checked; render(); }
+    else if(f === 'qty' && r){ r.qty = qtyOf({ qty: t.value }); render(); }
+  });
+
+  panel.addEventListener('input', function(e){
+    const t = e.target;
+    if(t === analyserEl){ state.analyser = t.value; update(); return; }
+    if(t === tokenEl){ state.tokenPrice = num(t.value); update(); return; }
+    const f = t.dataset && t.dataset.f; if(!f) return;
+    const r = rowOf(t);
+    if(f === 'qty' && r){ r.qty = t.value; update(); }
+    else if(f === 'price'){ state.prices[t.dataset.mat] = num(t.value); update(); }
+    else if(f === 'tokenPrice'){ state.tokenPrice = num(t.value); update(); }
+  });
+
+  panel.addEventListener('toggle', function(e){
+    const d = e.target;
+    if(!d || d.tagName !== 'DETAILS') return;
+    const r = rowOf(d);
+    if(r){ r.open = d.open; save(); }
+  }, true);
+
+  state = load() || sample();
+  analyserEl.value = state.analyser;
+  render();
 })();
