@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tibia Tools — Timer Bakragore, LootSplit e Imbuements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script>
+  // aplica a paleta e o estado da barra lateral salvos antes de pintar a página (evita piscar)
+  try{ var t = localStorage.getItem('site_theme_v1'); if(t) document.documentElement.setAttribute('data-theme', t); }catch(e){}
+  try{ if(localStorage.getItem('site_sidebar_v1') === 'collapsed') document.documentElement.setAttribute('data-sidebar', 'collapsed'); }catch(e){}
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+<div class="app-shell">
+
+  <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+    <div class="sidebar-brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><circle cx="12" cy="12" r="8.5" opacity=".25"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5" stroke-linecap="round"/></svg>
+      <span class="brand-text">Tibia Tools</span>
+      <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Fechar menu"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Ferramentas">
+      <div class="nav-label">Ferramentas</div>
+      <button type="button" class="nav-item tab-btn active" data-tab="timer" id="tabBtnTimer" title="Timer Bakragore" aria-current="page"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5"/><path d="M9.5 3h5"/></svg><span class="nav-text">Timer Bakragore</span></button>
+      <button type="button" class="nav-item tab-btn" data-tab="loot" id="tabBtnLoot" title="LootSplit"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v6"/><path d="M12 9l-6 6M12 9l6 6"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/></svg><span class="nav-text">LootSplit</span></button>
+      <button type="button" class="nav-item tab-btn" data-tab="imbue" id="tabBtnImbue" title="Imbuements"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6L5.2 18.4A1.6 1.6 0 0 0 6.6 21h10.8a1.6 1.6 0 0 0 1.4-2.6L14 9V3"/><path d="M7.8 15h8.4"/></svg><span class="nav-text">Imbuements</span></button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="theme-wrap">
+        <button type="button" class="nav-item theme-btn" id="themeBtn" aria-haspopup="true" aria-expanded="false" aria-controls="themePop" title="Mudar as cores do site"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.9-1 1.6-2-.3-1.1.4-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5-4-9.8-9-9.8z"/><circle cx="7.5" cy="11" r="1" fill="currentColor"/><circle cx="10.5" cy="7" r="1" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1" fill="currentColor"/></svg><span class="nav-text">Cores do site</span></button>
+        <div class="theme-pop" id="themePop" role="menu" aria-label="Paleta de cores" hidden>
+          <div class="theme-pop-title">Paleta de cores</div>
+          <div class="theme-group-title">Claras</div>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="claro">
+            <span class="swatch" style="--s1:#ffffff;--s2:#2563eb;--s3:#7c3aed"></span>Claro<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="claro-verde">
+            <span class="swatch" style="--s1:#ffffff;--s2:#15803d;--s3:#0369a1"></span>Verde claro<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="claro-roxo">
+            <span class="swatch" style="--s1:#ffffff;--s2:#6d28d9;--s3:#a21caf"></span>Roxo claro<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="cinza">
+            <span class="swatch" style="--s1:#ffffff;--s2:#374151;--s3:#6b7280"></span>Cinza<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <div class="theme-group-title">Escuras</div>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="roxo">
+            <span class="swatch" style="--s1:#1a1628;--s2:#7c4fe0;--s3:#b83fc9"></span>Roxo<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="esmeralda">
+            <span class="swatch" style="--s1:#12201a;--s2:#2faa6b;--s3:#d9a521"></span>Esmeralda<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="oceano">
+            <span class="swatch" style="--s1:#101b30;--s2:#2f7ee0;--s3:#14b5c8"></span>Oceano<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="ambar">
+            <span class="swatch" style="--s1:#211910;--s2:#d99a1c;--s3:#d9552b"></span>Âmbar<span class="tick" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="theme-opt" role="menuitemradio" aria-checked="false" data-theme-name="rubi">
+            <span class="swatch" style="--s1:#26141a;--s2:#c93049;--s3:#a8286a"></span>Rubi<span class="tick" aria-hidden="true">✓</span>
+          </button>
+        </div>
+      </div>
+      <button type="button" class="nav-item" id="sidebarToggle" aria-expanded="true" aria-controls="sidebar" title="Recolher menu" aria-label="Recolher menu"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg><span class="nav-text">Recolher menu</span></button>
+    </div>
+  </aside>
+  <div class="sidebar-scrim" id="sidebarScrim" hidden></div>
+
+  <div class="app-main">
+    <header class="mobile-bar">
+      <button type="button" id="sidebarOpen" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <span class="mobile-title">Tibia Tools</span>
+    </header>
+
+    <main class="app-wrap" id="main" tabindex="-1">
+
+      <!-- ===================== TIMER ===================== -->
+      <div id="panelTimer" class="tab-panel active">
+        <header class="page-head">
+          <div>
+            <h1 tabindex="-1">Timer Bakragore</h1>
+            <p class="page-sub">Rotten Charge a cada 1 min 30 s, com aviso sonoro nos últimos 10 segundos.</p>
+          </div>
+        </header>
+
+        <div class="timer-grid">
+          <section class="rig timer-card" aria-label="Timer">
+            <div class="stage" id="stageBox">
+              <svg width="100%" height="100%" viewBox="0 0 280 280">
+                <circle class="track" cx="140" cy="140" r="122"></circle>
+                <circle id="ring" class="progress rest" cx="140" cy="140" r="122"
+                        stroke-dasharray="766.5" stroke-dashoffset="0"></circle>
+              </svg>
+              <div class="stage-center">
+                <div id="phaseLabel" class="phase-label rest">Próxima Rotten Charge</div>
+                <div id="time" class="time">01:30</div>
+                <div id="cycleNote" class="cycle-note">ciclo 1</div>
+              </div>
+            </div>
+
+            <div class="bar-wrap">
+              <div class="bar-label">
+                <span>Sessão</span>
+                <span id="sessionLabel">00:00 / 25:00</span>
+              </div>
+              <div class="bar"><div id="sessionFill" class="bar-fill"></div></div>
+            </div>
+
+            <div class="controls">
+              <button id="toggleBtn" class="primary">Iniciar</button>
+              <button id="resetBtn">Reiniciar</button>
+              <button id="pipBtn">🗔 PIP</button>
+            </div>
+            <div id="pipHint" class="pip-hint"></div>
+
+    <!-- Painel usado somente dentro da janela de PIP; fica oculto na página normal -->
+    <div id="pipPanel" class="pip-panel">
+      <div class="pip-topbar">
+        <div class="pip-bar"><div id="pipSessionFill" class="pip-bar-fill"></div></div>
+        <span id="pipSessionLabel" class="pip-session-label">00:00 / 25:00</span>
+      </div>
+      <div class="pip-body">
+        <div class="pip-btns">
+          <button id="pipToggleBtn" class="pip-toggle-btn" title="Iniciar / Pausar">▶</button>
+          <button id="pipResetBtn" class="pip-reset-btn" title="Reiniciar">↺</button>
+        </div>
+        <div id="pipStageSlot" class="pip-stage-slot"></div>
+      </div>
+    </div>
+
+            <div id="status" class="status"></div>
+          </section>
+
+          <div class="timer-side">
+            <section class="rig">
+              <h2 class="card-title">Volumes</h2>
+    <div class="sound-panel">
+      <div class="sound-row">
+        <span class="sound-dot dot-warn"></span>
+        <span class="sound-name">Bip 10s restantes</span>
+        <input type="range" class="sound-slider" id="volWarn" min="0" max="100" value="70">
+        <span class="vol-pct" id="pctWarn">70%</span>
+        <button class="mute-btn" id="muteWarn" title="Silenciar bip de 10s">🔊</button>
+      </div>
+
+      <div class="sound-row">
+        <span class="sound-dot dot-count5"></span>
+        <span class="sound-name">Bip últimos 5s</span>
+        <input type="range" class="sound-slider" id="volCount5" min="0" max="100" value="70">
+        <span class="vol-pct" id="pctCount5">70%</span>
+        <button class="mute-btn" id="muteCount5" title="Silenciar bip dos 5s">🔊</button>
+      </div>
+
+      <div class="sound-row">
+        <span class="sound-dot dot-start"></span>
+        <span class="sound-name">Bip Reset Timer</span>
+        <input type="range" class="sound-slider" id="volStart" min="0" max="100" value="70">
+        <span class="vol-pct" id="pctStart">70%</span>
+        <button class="mute-btn" id="muteStart" title="Silenciar bip da Rotten Charge">🔊</button>
+      </div>
+    </div>
+            </section>
+
+            <section class="rig">
+              <h2 class="card-title">Teste rápido</h2>
+              <p class="test-hint">Botões de teste: adiantam o timer pra você ouvir os sons sem esperar o ciclo inteiro.</p>
+              <div class="controls test-controls">
+                <button id="sub30Btn" class="ghost">−30s</button>
+                <button id="sub15Btn" class="ghost">−15s</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div><!-- /panelTimer -->
+
+      <!-- ===================== LOOTSPLIT ===================== -->
+      <div id="panelLoot" class="tab-panel">
+        <header class="page-head">
+          <div>
+            <h1 tabindex="-1">LootSplit</h1>
+            <p class="page-sub">Cole o texto do Party Hunt Analyser e veja quem transfere quanto para quem.</p>
+          </div>
+        </header>
+
+        <div class="loot-layout">
+          <section class="rig loot-input">
+            <h2 class="card-title">Party Hunt Analyser</h2>
+            <p class="loot-instructions">
+              Cole abaixo o texto copiado do Party Hunt Analyser do Tibia (botão direito no analyser → <em>Copy to clipboard</em>) e calcule a divisão justa do loot entre os membros da party.
+            </p>
+
+            <textarea id="lootInput" class="loot-textarea" placeholder="Cole aqui o texto do Party Hunt Analyser..."></textarea>
+
+            <label class="field-label" for="lootSessionName">Nome da sessão (opcional)</label>
+            <input id="lootSessionName" class="text-input" type="text" maxlength="60" placeholder="Ex: Bakragore sexta" autocomplete="off">
+
+            <div class="controls">
+              <button id="lootCalcBtn" class="primary">Calcular Split</button>
+              <button id="lootClearBtn">Limpar</button>
+            </div>
+
+            <div id="lootError" class="loot-error"></div>
+          </section>
+
+          <div class="loot-right">
+            <section id="lootResults" class="rig loot-results" style="display:none;">
+              <div class="card-head">
+                <h2 class="card-title">Resultado</h2>
+                <button type="button" id="lootShareBtn" class="share-link-btn" title="Copiar um link com este split para enviar a alguém">🔗 Copiar link do split</button>
+              </div>
+              <div class="loot-summary">
+                <div class="loot-summary-row">
+                  <span>Balance total do grupo</span>
+                  <strong id="lootTotalBalance">0</strong>
+                </div>
+                <div class="loot-summary-row">
+                  <span>Divisão igualitária (por pessoa)</span>
+                  <strong id="lootEqualShare">0</strong>
+                </div>
+              </div>
+
+              <div class="loot-table-hint">Desmarque um jogador pra tirá-lo da divisão (ex: alguém que só ajudou na hunt, sem participar do loot).</div>
+
+              <div class="table-scroll">
+              <table class="loot-table">
+                <thead>
+                  <tr>
+                    <th>Jogador</th>
+                    <th>Loot</th>
+                    <th>Supplies</th>
+                    <th>Balance</th>
+                    <th>Ajuste</th>
+                  </tr>
+                </thead>
+                <tbody id="lootTableBody"></tbody>
+              </table>
+              </div>
+
+              <div class="loot-transfers">
+                <div class="loot-transfers-header">
+                  <div class="loot-transfers-title">Transferências sugeridas</div>
+                  <button id="lootCopyAllBtn" class="copy-all-btn" title="Copiar resumo completo">📋 Copiar tudo</button>
+                </div>
+                <ul id="lootTransfersList"></ul>
+              </div>
+            </section>
+            <div class="loot-placeholder">Nenhum cálculo ainda. Cole o texto do analyser ao lado e clique em Calcular Split.</div>
+          </div>
+
+          <section class="rig loot-history">
+            <div class="loot-history-header">
+              <span class="loot-history-title">Histórico salvo</span>
+              <button id="lootHistoryClearBtn" class="ghost small">Limpar histórico</button>
+            </div>
+            <div class="history-tools" id="lootHistoryTools">
+              <input id="lootHistorySearch" class="text-input" type="search" placeholder="Nome, jogador ou data…" aria-label="Buscar no histórico" autocomplete="off">
+              <select id="lootHistoryPeriod" class="text-input" aria-label="Filtrar por período">
+                <option value="all">Todas as datas</option>
+                <option value="today">Hoje</option>
+                <option value="7">Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+              </select>
+            </div>
+            <div class="history-count" id="lootHistoryCount" role="status"></div>
+            <div id="lootHistoryList" class="loot-history-list"></div>
+          </section>
+        </div>
+      </div><!-- /panelLoot -->
+
+      <!-- ===================== IMBUEMENTS ===================== -->
+      <div id="panelImbue" class="tab-panel">
+        <header class="page-head">
+          <div>
+            <h1 tabindex="-1">Imbuements</h1>
+            <p class="page-sub">Cole o Hunt Analyser e descubra quanto os imbuements custam por hora e quanto sobra de lucro.</p>
+          </div>
+          <button id="imbSampleBtn" class="ghost small" data-act="sample">Restaurar exemplo</button>
+        </header>
+
+        <div class="rig">
+        <div class="imb-band" aria-label="Resultado">
+          <div class="imb-stat main">
+            <span class="imb-stat-label">Imbuements por hora</span>
+            <div class="imb-stat-value"><span id="imbPerHour">0</span> <small>gp</small></div>
+            <span class="imb-stat-note" id="imbPerHourNote"></span>
+          </div>
+          <div class="imb-stat">
+            <span class="imb-stat-label">Gasto na sessão</span>
+            <div class="imb-stat-value"><span id="imbSession">—</span> <small>gp</small></div>
+            <span class="imb-stat-note" id="imbSessionNote"></span>
+          </div>
+          <div class="imb-stat">
+            <span class="imb-stat-label">Lucro depois dos imbuements</span>
+            <div class="imb-stat-value" id="imbNet">—</div>
+            <span class="imb-stat-note" id="imbNetNote">Cole o Hunt Analyser para calcular.</span>
+          </div>
+          <div class="imb-stat">
+            <span class="imb-stat-label">Loot mínimo/h para empatar</span>
+            <div class="imb-stat-value"><span id="imbBreakeven">—</span> <small>gp</small></div>
+            <span class="imb-stat-note">Suprimentos por hora mais imbuements por hora.</span>
+          </div>
+        </div>
+
+        <div class="imb-split" aria-label="Custo por hora">
+          <span class="imb-stat-label">Custo por hora</span>
+          <div class="imb-bar" id="imbBar" role="img" aria-label="Proporção entre suprimentos e imbuements"><i id="imbBarSup"></i><i id="imbBarImb"></i></div>
+          <div class="imb-legend">
+            <span><i class="imb-dot imb-dot-sup"></i>Suprimentos <b id="imbLegSup">—</b></span>
+            <span><i class="imb-dot imb-dot-imb"></i>Imbuements <b id="imbLegImb">0</b></span>
+          </div>
+        </div>
+
+        <div class="imb-cols">
+          <section class="imb-col" aria-labelledby="imbH1">
+            <div class="imb-section-title">
+              <span id="imbH1">1. Hunt Analyser</span>
+              <button id="imbClearBtn" class="ghost small" data-act="clear-an">Limpar</button>
+            </div>
+            <textarea id="imbAnalyser" class="loot-textarea" spellcheck="false" aria-label="Texto do Hunt Analyser" placeholder="Cole aqui o texto do Hunt Analyser (copie no jogo)&#10;&#10;Session data: From 2026-10-31, 13:18:46 to 2026-10-31, 13:24:35&#10;Session: 00:05h&#10;Loot: 94,047&#10;Supplies: 8,060&#10;Balance: 85,987"></textarea>
+            <div id="imbStatus" class="imb-status" role="status"></div>
+            <div class="imb-tiles" id="imbTiles"></div>
+          </section>
+
+          <section class="imb-col" aria-labelledby="imbH2">
+            <div class="imb-section-title">
+              <span id="imbH2">2. Seus imbuements</span>
+              <div class="imb-title-tools">
+                <label for="imbTokenPrice">Gold Token (gp)</label>
+                <input id="imbTokenPrice" class="imb-input" type="number" inputmode="numeric" min="0" step="1" placeholder="0">
+                <button id="imbAddBtn" class="primary small" data-act="add">+ Imbuement</button>
+              </div>
+            </div>
+            <div class="imb-presets" id="imbPresets">
+              <div class="imb-presets-head">
+                <span class="imb-presets-label" id="imbPresetsLabel">Presets de hunt</span>
+                <button type="button" id="imbPresetNew" class="ghost small">+ Salvar como preset</button>
+              </div>
+              <div class="imb-chips" id="imbPresetChips" role="group" aria-labelledby="imbPresetsLabel"></div>
+              <form class="imb-preset-form" id="imbPresetForm" hidden>
+                <input id="imbPresetName" class="text-input" type="text" maxlength="30" required placeholder="Nome do preset (ex: Warzone 3)" aria-label="Nome do preset" autocomplete="off">
+                <button type="submit" class="primary small">Salvar</button>
+                <button type="button" id="imbPresetCancel" class="ghost small">Cancelar</button>
+              </form>
+              <div class="imb-preset-manage" id="imbPresetManage" hidden>
+                <span id="imbPresetManageText"></span>
+                <button type="button" id="imbPresetUpdate" class="ghost small" hidden>Atualizar com os imbuements atuais</button>
+                <button type="button" id="imbPresetRename" class="ghost small">Renomear</button>
+                <button type="button" id="imbPresetDelete" class="ghost small">Excluir</button>
+              </div>
+              <div class="imb-preset-msg" id="imbPresetMsg" role="status"></div>
+            </div>
+            <div id="imbRows"></div>
+            <div class="imb-total">
+              <span id="imbTotalLabel">Total</span>
+              <strong id="imbTotalValue">0 gp/h</strong>
+            </div>
+            <p class="imb-foot">
+              Custo por hora = (materiais + taxa do NPC) ÷ 20 h, vezes a quantidade. Taxa do NPC por slot: Basic 7.500, Intricate 60.000, Powerful 250.000 gp. Gold Tokens só valem para Strike, Vampirism e Void (2, 4 e 6 tokens). Os preços dos materiais começam no valor de NPC: ajuste para o que você paga. Materiais marcados como referência podem estar desatualizados: confira no jogo.
+            </p>
+          </section>
+        </div>
+        </div>
+
+        <section class="rig imb-loot" id="imbLootCard" aria-labelledby="imbLootTitle">
+          <div class="card-head">
+            <h2 class="card-title" id="imbLootTitle">Loot da sessão</h2>
+          </div>
+          <p class="imb-loot-summary" id="imbLootSummary"></p>
+
+          <div class="imb-loot-tools">
+            <input id="imbLootSearch" class="imb-input" type="search" placeholder="Buscar item…" aria-label="Buscar item no loot" autocomplete="off">
+            <div class="imb-chips" role="group" aria-label="Filtrar por tipo">
+              <button type="button" class="imb-chip active" data-lf="all" aria-pressed="true">Todos <span id="imbCntAll">0</span></button>
+              <button type="button" class="imb-chip" data-lf="delivery" aria-pressed="false">Delivery <span id="imbCntDel">0</span></button>
+              <button type="button" class="imb-chip" data-lf="imbuement" aria-pressed="false">Imbuement <span id="imbCntImb">0</span></button>
+              <button type="button" class="imb-chip" data-lf="other" aria-pressed="false">Outros <span id="imbCntOth">0</span></button>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table class="loot-items" id="imbLootTable">
+              <thead>
+                <tr>
+                  <th aria-sort="none"><button type="button" class="th-btn" data-ls="name">Item</button></th>
+                  <th>Tipo</th>
+                  <th class="num" aria-sort="none"><button type="button" class="th-btn" data-ls="qty">Qtd</button></th>
+                  <th class="num" aria-sort="none"><button type="button" class="th-btn" data-ls="price">NPC paga</button></th>
+                  <th class="num" aria-sort="descending"><button type="button" class="th-btn" data-ls="total">Total</button></th>
+                </tr>
+              </thead>
+              <tbody id="imbLootBody"></tbody>
+            </table>
+          </div>
+          <div class="imb-loot-empty" id="imbLootEmpty"></div>
+          <p class="imb-foot" id="imbLootNote">
+            Delivery: itens de delivery tasks (lista do TibiaPal, que pode não ter itens lançados depois do Summer Update 2026). Imbuement: materiais dos imbuements da calculadora. O preço de NPC só aparece para itens que o site conhece; os demais ficam com um traço e não entram na soma.
+          </p>
+        </section>
+      </div><!-- /panelImbue -->
+
+    </main>
+  </div>
+</div>
+
+<script src="items.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
